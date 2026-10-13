@@ -1,0 +1,25 @@
+name: build
+on: workflow_dispatch
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Extrair o zip
+        run: |
+          mkdir out
+          unzip -q ./*.zip -d out
+          echo "DIR=$(dirname "$(find out -name build.gradle | head -1)")" >> "$GITHUB_ENV"
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: 8.5
+      - name: Compilar
+        run: cd "$DIR" && gradle build --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mod-jar
+          path: ${{ env.DIR }}/build/libs/*.jar
